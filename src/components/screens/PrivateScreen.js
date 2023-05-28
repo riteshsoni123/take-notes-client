@@ -2,16 +2,20 @@ import { React, useState, useEffect, useRef } from "react";
 import axios from "../../axios";
 import { useNavigate } from "react-router-dom";
 import Element from "../Element";
-import Button from "react-bootstrap/Button";
-import Form from "react-bootstrap/Form";
+import NavBar from "../NavBar";
+import Button from "@mui/material/Button";
+import Form from "../Form";
 
 const PrivateScreen = () => {
   const navigate = useNavigate();
   const [error, setError] = useState("");
   const [privateData, setPrivateData] = useState("");
-  const [value, setValue] = useState("");
-  const [newValue, setNewValue] = useState("");
-  const [modal, setModal] = useState(false);
+  const [add, setAdd] = useState(false);
+  const [update, setUpdate] = useState(false);
+  const [value, setValue] = useState({
+    title: "",
+    description: "",
+  });
   const [list, setList] = useState([]);
   const id = useRef("");
 
@@ -44,38 +48,14 @@ const PrivateScreen = () => {
       }
     };
     fetchPrivateData();
-  }, [navigate]);
+  }, [navigate, add, update]);
 
   const logoutHandler = () => {
     localStorage.removeItem("authToken");
     navigate("/login");
   };
 
-  const saveValue = async (e) => {
-    e.preventDefault();
-
-    const config = {
-      headers: {
-        contentType: "application/json",
-        Authorization: `Bearer ${localStorage.getItem("authToken")}`,
-      },
-    };
-
-    try {
-      const { data } = await axios.post(
-        "/api/personal/addelement",
-        { element: value },
-        config
-      );
-      setList(list.concat(data));
-      setValue("");
-    } catch (error) {
-      localStorage.removeItem("authToken");
-      setError("You are not authorized please login");
-    }
-  };
-
-  const deleteValue = async () => {
+  const deleteElement = async () => {
     const config = {
       headers: {
         contentType: "application/json",
@@ -97,40 +77,13 @@ const PrivateScreen = () => {
     }
   };
 
-  const editValue = async (e) => {
-    e.preventDefault();
-
-    const config = {
-      headers: {
-        contentType: "application/json",
-        Authorization: `Bearer ${localStorage.getItem("authToken")}`,
-      },
-    };
-
-    try {
-      await axios.post(
-        `/api/personal/editelement/${id.current}`,
-        { element: newValue },
-        config
-      );
-
-      const index = list.findIndex((element) => element._id === id.current);
-      list[index].element = newValue;
-      setList(list);
-
-      updateModal();
-    } catch (error) {
-      localStorage.removeItem("authToken");
-      setError("You are not authorized please login");
-    }
+  const addButton = async () => {
+    setAdd(!add);
   };
 
-  const updateModal = () => {
-    if (modal) {
-      setModal(false);
-    } else {
-      setModal(true);
-    }
+  const updateButton = async (val) => {
+    setValue(val);
+    setUpdate(!update);
   };
 
   return error ? (
@@ -140,56 +93,24 @@ const PrivateScreen = () => {
     </>
   ) : (
     <>
-      <div>{privateData.email}</div>
-      <div>{privateData.username}</div>
-      <button onClick={logoutHandler}>Logout</button>
+      <NavBar data={{ privateData, logoutHandler }} />
 
-      <Form onSubmit={saveValue}>
-        <Form.Group className="mb-3">
-          <Form.Label>Add Element</Form.Label>
-          <Form.Control
-            type="text"
-            placeholder="Add Item"
-            required
-            id="text"
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-          />
-        </Form.Group>
-
-        <Button variant="primary" type="submit">
-          Add
-        </Button>
-      </Form>
-
-      {modal ? (
-        <Form onSubmit={editValue}>
-          <Form.Group className="mb-3">
-            <Form.Label>Edit Element</Form.Label>
-            <Form.Control
-              type="text"
-              placeholder="Edit Item"
-              required
-              id="text"
-              value={newValue}
-              onChange={(e) => setNewValue(e.target.value)}
-            />
-          </Form.Group>
-
-          <Button variant="primary" type="submit">
-            Save
-          </Button>
-        </Form>
-      ) : (
-        <></>
+      {(add || update) && (
+        <Form
+          data={{ setList, list, add, setAdd, update, setUpdate, value, id }}
+        />
       )}
+
+      <Button sx={{ m: 2 }} variant="contained" onClick={addButton}>
+        Add Item
+      </Button>
 
       <div className="row my-3 mx-3">
         {list.map((element) => {
           return (
             <Element
               key={element._id}
-              data={{ element, deleteValue, updateModal, modal, id }}
+              data={{ element, updateButton, deleteElement, id }}
             />
           );
         })}

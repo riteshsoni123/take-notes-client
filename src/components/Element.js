@@ -1,35 +1,43 @@
-import React from "react";
-import Button from "react-bootstrap/Button";
-import Card from "react-bootstrap/Card";
+import * as React from "react";
+import Card from "@mui/material/Card";
+import CardActions from "@mui/material/CardActions";
+import CardContent from "@mui/material/CardContent";
+import Button from "@mui/material/Button";
+import Typography from "@mui/material/Typography";
 
-const Element = (props) => {
-  const { element, deleteValue, updateModal, id } = props.data;
+export default function Element(props) {
+  const { element, updateButton, deleteElement, id } = props.data;
 
   return (
-    <Card className="col-md-3 mx-3 my-3">
-      <Card.Body>
-        <Card.Text>{element.element}</Card.Text>
+    <Card sx={{ maxWidth: 345, m: 2 }}>
+      <CardContent>
+        <Typography gutterBottom variant="h5" component="div">
+          {element.title}
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          {element.description}
+        </Typography>
+      </CardContent>
+      <CardActions>
         <Button
-          variant="success"
+          size="small"
           onClick={() => {
             id.current = element._id;
-            updateModal();
+            updateButton(element);
           }}
         >
           Edit
         </Button>
         <Button
-          variant="danger"
+          size="small"
           onClick={() => {
             id.current = element._id;
-            deleteValue();
+            deleteElement();
           }}
         >
           Delete
         </Button>
-      </Card.Body>
+      </CardActions>
     </Card>
   );
-};
-
-export default Element;
+}
